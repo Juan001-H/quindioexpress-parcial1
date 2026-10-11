@@ -1,3 +1,4 @@
+package estructuras;
 /**
  * Contrato común genérico exigido por QuindíoExpress para sus estructuras propias.
  * Extiende Iterable<T> para permitir recorrer la estructura sin exponer sus nodos.
