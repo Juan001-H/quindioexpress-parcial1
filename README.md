@@ -3,19 +3,17 @@
 Sistema de gestión de operaciones de un centro de distribución, en Java.
 
 ## Integrantes
-- Integrante A: (nombre)
-- Integrante B: (nombre)
+- Integrante A: Tomas Suaza
+- Integrante B: (Nombre de tu compañero)
 
 ## Estructura
-- `src/`: código fuente Java
-- `docs/`: documento PDF (diseño, pilas de llamadas, bitácora de IA)
+- `src/modelo`: Clases de dominio (`Paquete`, `Repartidor`) y criterios de ordenamiento (`Comparator`).
+- `src/estructuras`: Interfaz genérica y `ListaSimplementeEnlazada` propia con `Iterable`/`Iterator`.
+- `src/servicio`: Lógica operativa (`CentroDistribucion`), algoritmos recursivos, búsqueda binaria y divide y vencerás.
+- `docs/`: Documento PDF (diseño, pilas de llamadas, bitácora de IA).
 
 ## Compilar y ejecutar
 ```bash
 javac -d out $(find src -name "*.java")
 java -cp out Main
-```
 
-## Flujo de trabajo en Git
-- `main` solo recibe cambios por Pull Request.
-- Cada integrante trabaja en su propia rama `feature/...` con commits pequeños.
