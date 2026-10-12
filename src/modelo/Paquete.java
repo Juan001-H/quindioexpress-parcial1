@@ -40,25 +40,10 @@ public class Paquete implements Comparable<Paquete> {
         }
 
         this.codigo = codLimpio;
-        this.destino = formatearNombrePropio(destLimpio);
+        this.destino = Texto.formatearNombrePropio(destLimpio);
         this.peso = peso;
         this.prioridad = prioridad;
         this.tiempoEstimado = tiempoEstimado;
-    }
-
-    private static String formatearNombrePropio(String texto) {
-        String[] palabras = texto.toLowerCase().split("\\s+");
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < palabras.length; i++) {
-            if (!palabras[i].isEmpty()) {
-                sb.append(Character.toUpperCase(palabras[i].charAt(0)))
-                  .append(palabras[i].substring(1));
-                if (i < palabras.length - 1) {
-                    sb.append(" ");
-                }
-            }
-        }
-        return sb.toString();
     }
 
     public String getCodigo() {

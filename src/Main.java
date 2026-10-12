@@ -2,18 +2,43 @@ import estructuras.ColeccionSimple;
 import java.util.List;
 import java.util.Scanner;
 import modelo.Paquete;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import modelo.Repartidor;
 import servicio.CentroDistribucion;
 
 public class Main {
+
+    // Se lanza cuando el usuario escribe 'x' en un campo para abandonar la operación actual
+    private static class OperacionCancelada extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        OperacionCancelada() {
+            super("Operación cancelada por el usuario.");
+        }
+    }
+
+    // Se lanza cuando ya no hay más entrada (Ctrl+D / Ctrl+Z o fin de archivo)
+    private static class FinDeEntrada extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+    }
 
     public static void main(String[] args) {
         CentroDistribucion centro = new CentroDistribucion();
         cargarDatosBase(centro);
 
         Scanner sc = new Scanner(System.in);
-        int opcion = -1;
 
+        try {
+            ejecutarMenu(centro, sc);
+        } catch (FinDeEntrada e) {
+            System.out.println("\n\nNo hay más entrada. Programa finalizado.");
+        }
+        sc.close();
+    }
+
+    private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
+        int opcion = -1;
         while (opcion != 0) {
             System.out.println("\n================ QUINDÍO EXPRESS (Total: "
                     + centro.getPaquetesOrdenLlegada().size() + " | Pendientes: "
@@ -24,11 +49,11 @@ public class Main {
             System.out.println(" 4. Ver paquetes de un municipio       | 11. Recursividad: Contar por prioridad");
             System.out.println(" 5. Despachar 1 paquete (Orden llegada)| 12. Búsqueda Binaria por código");
             System.out.println(" 6. Despachar 1 paquete (Por prioridad)| 13. Divide y Vencerás: Paquete más pesado");
-            System.out.println(" 7. Reportes ordenados (Comparable / Comparator)");
-            System.out.println(" 0. Salir");
+            System.out.println(" 7. Reportes ordenados (Comparator)    | 14. Registrar entrega (libera al repartidor)");
+            System.out.println(" 0. Salir                              |     En cualquier campo escriba 'x' para cancelar");
             System.out.println("=====================================================================================");
 
-            opcion = leerEnteroEnRango(sc, "-> Elija una opción (0-13): ", 0, 13);
+            opcion = leerOpcion(sc, "-> Elija una opción (0-14): ", 0, 14);
 
             try {
                 switch (opcion) {
@@ -74,10 +99,17 @@ public class Main {
                         System.out.println("\n--- 13. DIVIDE Y VENCERÁS: PAQUETE DE MAYOR PESO ---");
                         System.out.println("-> Paquete más pesado encontrado: " + centro.obtenerPaqueteMayorPesoDivideYVenceras());
                         break;
+                    case 14:
+                        opcionRegistrarEntrega(centro, sc);
+                        break;
                     case 0:
                         System.out.println("Programa finalizado correctamente.");
                         break;
                 }
+            } catch (OperacionCancelada e) {
+                System.out.println("\n[CANCELADO]: " + e.getMessage());
+            } catch (FinDeEntrada e) {
+                throw e;
             } catch (IllegalArgumentException e) {
                 System.out.println("\n[EXCEPCIÓN DE VALIDACIÓN]: " + e.getMessage());
             } catch (Exception e) {
@@ -86,10 +118,9 @@ public class Main {
 
             if (opcion != 0) {
                 System.out.print("\n[Presione ENTER para volver al menú]");
-                sc.nextLine();
+                leerLinea(sc);
             }
         }
-        sc.close();
     }
 
     // =========================================================================
@@ -101,12 +132,14 @@ public class Main {
 
         // 1. Valida formato de código inmediatamente y verifica duplicado antes de seguir
         String codigo = leerCodigoAlfanumerico(sc, "Código del paquete (letras y números, ej. PQ888): ");
-        if (centro.consultarPaquetePorCodigo(codigo) != null) {
-            throw new IllegalArgumentException("Rechazado: Ya existe un paquete registrado con el código '" + codigo + "'.");
+        while (centro.consultarPaquetePorCodigo(codigo) != null) {
+            error("Ya existe un paquete con el código '" + codigo + "'.");
+            codigo = leerCodigoAlfanumerico(sc, "Código del paquete (letras y números, ej. PQ888): ");
         }
 
-        // 2. Valida que el municipio solo tenga letras (si escriben "65", lanza error de inmediato)
-        String destino = leerTextoSoloLetras(sc, "Municipio destino (solo letras, ej. Armenia, Salento): ");
+        // 2. Valida que el municipio solo tenga letras; si ya existe (ej. "calarca") se usa el nombre registrado ("Calarcá")
+        String destino = centro.resolverNombreMunicipio(
+                leerTextoSoloLetras(sc, "Municipio destino (solo letras, ej. Armenia, Salento): "));
 
         // 3. Valida que el peso sea numérico decimal > 0
         double peso = leerDoublePositivo(sc, "Peso en kg (número > 0, ej. 4.5): ");
@@ -136,7 +169,7 @@ public class Main {
     private static void opcionPaquetesPorMunicipio(CentroDistribucion centro, Scanner sc) {
         System.out.println("\n--- 4. PAQUETES POR MUNICIPIO ---");
         System.out.println("Municipios disponibles: " + centro.obtenerMunicipiosOrdenados());
-        String mun = leerTextoSoloLetras(sc, "Escriba el nombre del municipio: ");
+        String mun = centro.resolverNombreMunicipio(leerTextoSoloLetras(sc, "Escriba el nombre del municipio: "));
         List<Paquete> lista = centro.obtenerPaquetesPorMunicipio(mun);
         if (lista.isEmpty()) {
             System.out.println("-> No hay paquetes registrados hacia '" + mun + "'.");
@@ -160,11 +193,10 @@ public class Main {
         if (rep == null) {
             throw new IllegalArgumentException("No se puede despachar '" + candidato.getCodigo()
                     + "': No hay ningún repartidor DISPONIBLE en la zona '" + candidato.getDestino()
-                    + "'. (Puede liberar uno en la opción 8).");
+                    + "'. Registre una entrega pendiente (opción 14) o libere uno (opción 8).");
         }
         Paquete atendido = centro.atenderSiguientePorOrdenLlegada(rep);
-        System.out.println("[DESPACHADO CON ÉXITO] -> " + atendido);
-        System.out.println("[REPARTIDOR ASIGNADO]  -> " + rep.getNombre() + " (" + rep.getIdentificacion() + ") pasó a ocupado.");
+        mostrarDespacho(atendido, rep);
     }
 
     private static void opcionDespacharPrioridad(CentroDistribucion centro) {
@@ -179,11 +211,38 @@ public class Main {
         if (rep == null) {
             throw new IllegalArgumentException("No se puede despachar '" + candidato.getCodigo()
                     + "': No hay ningún repartidor DISPONIBLE en la zona '" + candidato.getDestino()
-                    + "'. (Puede liberar uno en la opción 8).");
+                    + "'. Registre una entrega pendiente (opción 14) o libere uno (opción 8).");
         }
         Paquete atendido = centro.atenderSiguientePorPrioridad(rep);
+        mostrarDespacho(atendido, rep);
+    }
+
+    private static void mostrarDespacho(Paquete atendido, Repartidor rep) {
         System.out.println("[DESPACHADO CON ÉXITO] -> " + atendido);
-        System.out.println("[REPARTIDOR ASIGNADO]  -> " + rep.getNombre() + " (" + rep.getIdentificacion() + ") pasó a ocupado.");
+        System.out.println("[REPARTIDOR ASIGNADO]  -> " + rep.getNombre() + " (" + rep.getIdentificacion()
+                + ") pasó a ocupado y lleva el paquete en ruta.");
+        System.out.println("   Cuando lo entregue, regístrelo con la opción 14 para liberarlo.");
+    }
+
+    private static void opcionRegistrarEntrega(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 14. REGISTRAR ENTREGA ---");
+        Map<String, Paquete> enRuta = centro.getPaquetesEnRuta();
+        if (enRuta.isEmpty()) {
+            System.out.println("[!] No hay paquetes en ruta. Despache uno con las opciones 5 o 6.");
+            return;
+        }
+        System.out.println("Paquetes en ruta:");
+        for (Map.Entry<String, Paquete> e : enRuta.entrySet()) {
+            System.out.println("   * " + e.getKey() + " lleva " + e.getValue().getCodigo()
+                    + " hacia " + e.getValue().getDestino());
+        }
+        String id = leerCodigoAlfanumerico(sc, "ID del repartidor que entregó (ej. REP-101): ");
+        Paquete entregado = centro.registrarEntrega(id);
+        if (entregado == null) {
+            throw new IllegalArgumentException("El repartidor '" + id + "' no existe o no tiene ningún paquete en ruta.");
+        }
+        System.out.println("[ENTREGADO] -> " + entregado.getCodigo() + " agregado al historial.");
+        System.out.println("[LIBERADO]  -> " + centro.consultarRepartidorPorId(id).getNombre() + " vuelve a estar disponible.");
     }
 
     private static void opcionReportesOrdenados(CentroDistribucion centro, Scanner sc) {
@@ -196,6 +255,10 @@ public class Main {
 
         int crit = leerEnteroEnRango(sc, "Seleccione el reporte (1-5): ", 1, 5);
         int max = centro.getPaquetesOrdenLlegada().size();
+        if (max == 0) {
+            System.out.println("[!] No hay paquetes registrados.");
+            return;
+        }
         int cantidad = leerEnteroEnRango(sc, "¿Cuántos paquetes desea visualizar? (1 a " + max + "): ", 1, max);
 
         List<Paquete> reporte;
@@ -215,18 +278,20 @@ public class Main {
     private static void opcionGestionarRepartidores(CentroDistribucion centro, Scanner sc) {
         System.out.println("\n--- 8. GESTIÓN DE REPARTIDORES ---");
         for (Repartidor r : centro.getRepartidoresPorId().values()) {
-            System.out.println("   * " + r);
+            Paquete enRuta = centro.obtenerPaqueteEnRuta(r.getIdentificacion());
+            System.out.println("   * " + r + (enRuta != null ? "  -> en ruta con " + enRuta.getCodigo() : ""));
         }
         System.out.println("\nAcciones: [1] Registrar nuevo repartidor | [2] Cambiar disponibilidad | [0] Volver");
         int sub = leerEnteroEnRango(sc, "Elija acción (0-2): ", 0, 2);
 
         if (sub == 1) {
             String id = leerCodigoAlfanumerico(sc, "Identificación única (ej. REP-800): ");
-            if (centro.consultarRepartidorPorId(id) != null) {
-                throw new IllegalArgumentException("Rechazado: Ya existe un repartidor con la identificación '" + id + "'.");
+            while (centro.consultarRepartidorPorId(id) != null) {
+                error("Ya existe un repartidor con la identificación '" + id + "'.");
+                id = leerCodigoAlfanumerico(sc, "Identificación única (ej. REP-800): ");
             }
             String nombre = leerTextoSoloLetras(sc, "Nombre completo (solo letras): ");
-            String zona = leerTextoSoloLetras(sc, "Zona/Municipio asignado (solo letras): ");
+            String zona = centro.resolverNombreMunicipio(leerTextoSoloLetras(sc, "Zona/Municipio asignado (solo letras): "));
             boolean disp = leerSiNo(sc, "¿Está disponible actualmente? (s/n): ");
 
             Repartidor nuevo = new Repartidor(id, nombre, zona, disp);
@@ -237,6 +302,11 @@ public class Main {
             Repartidor rep = centro.consultarRepartidorPorId(id);
             if (rep == null) {
                 throw new IllegalArgumentException("No existe ningún repartidor con ID '" + id + "'.");
+            }
+            Paquete enRuta = centro.obtenerPaqueteEnRuta(rep.getIdentificacion());
+            if (enRuta != null) {
+                throw new IllegalArgumentException(rep.getNombre() + " tiene en ruta el paquete " + enRuta.getCodigo()
+                        + ". Registre primero la entrega con la opción 14.");
             }
             boolean disp = leerSiNo(sc, "¿Marcar como disponible? (s/n): ");
             rep.setDisponible(disp);
@@ -250,7 +320,7 @@ public class Main {
         System.out.println("Total entregados: " + hist.tamano() + " | ¿Vacía?: " + hist.estaVacia());
 
         if (hist.estaVacia()) {
-            System.out.println("   (Aún no hay paquetes entregados. Despache uno con las opciones 5 o 6).");
+            System.out.println("   (Aún no hay entregas. Despache con las opciones 5 o 6 y registre la entrega con la 14).");
             return;
         }
 
@@ -266,8 +336,8 @@ public class Main {
             System.out.println("-> Elemento obtenido: " + hist.obtener(pos));
         } else if (sub == 2) {
             String cod = leerCodigoAlfanumerico(sc, "Código del paquete a eliminar del historial (ej. PQ105): ");
-            Paquete referencia = new Paquete(cod, "Armenia", 1.0, 1, 1);
-            boolean eliminado = hist.eliminar(referencia);
+            Paquete referencia = centro.consultarPaquetePorCodigo(cod);
+            boolean eliminado = referencia != null && hist.eliminar(referencia);
             System.out.println(eliminado
                     ? "[OK] Paquete '" + cod + "' eliminado de la lista enlazada."
                     : "[!] El paquete '" + cod + "' no se encontraba en el historial.");
@@ -276,7 +346,7 @@ public class Main {
 
     private static void opcionRecursivaPesoMunicipio(CentroDistribucion centro, Scanner sc) {
         System.out.println("\n--- 10. RECURSIVIDAD 1: PESO TOTAL POR MUNICIPIO ---");
-        String mun = leerTextoSoloLetras(sc, "Ingrese municipio a calcular (solo letras, ej. Armenia): ");
+        String mun = centro.resolverNombreMunicipio(leerTextoSoloLetras(sc, "Ingrese municipio a calcular (solo letras, ej. Armenia): "));
         double total = centro.calcularPesoTotalPorMunicipio(mun);
         System.out.printf("-> Peso total hacia %s: %.2f kg%n", mun, total);
     }
@@ -302,86 +372,132 @@ public class Main {
     // MÉTODOS VALIDADORES DE ENTRADA (LANZAN EXCEPCIÓN SI EL TIPO ES INCORRECTO)
     // =========================================================================
 
-    private static String leerTextoSoloLetras(Scanner sc, String mensaje) {
-        System.out.print(mensaje);
-        String entrada = sc.nextLine().trim();
-        if (entrada.isEmpty()) {
-            throw new IllegalArgumentException("El campo de texto no puede estar vacío.");
+    // Lee una línea; si se acabó la entrada termina el programa de forma ordenada
+    private static String leerLinea(Scanner sc) {
+        try {
+            return sc.nextLine();
+        } catch (NoSuchElementException e) {
+            throw new FinDeEntrada();
         }
-        if (!entrada.matches("^[\\p{L}\\s]+$")) {
-            throw new IllegalArgumentException("Valor inválido ('" + entrada + "'): Este campo exige TEXTO (solo letras), no se permiten números ni símbolos.");
+    }
+
+    // Lee un campo de una operación; escribir 'x' cancela la operación y vuelve al menú
+    private static String leerCampo(Scanner sc, String mensaje) {
+        System.out.print(mensaje);
+        String entrada = leerLinea(sc).trim();
+        if (entrada.equalsIgnoreCase("x")) {
+            throw new OperacionCancelada();
         }
         return entrada;
+    }
+
+    private static void error(String mensaje) {
+        System.out.println("   [!] " + mensaje + " Intente de nuevo (o 'x' para cancelar).");
+    }
+
+    // Todos los lectores repiten la pregunta hasta recibir un dato válido, sin perder lo ya escrito
+
+    private static String leerTextoSoloLetras(Scanner sc, String mensaje) {
+        while (true) {
+            String entrada = leerCampo(sc, mensaje);
+            if (entrada.isEmpty()) {
+                error("El campo no puede estar vacío.");
+            } else if (!entrada.matches("^[\\p{L}\\s]+$")) {
+                error("'" + entrada + "' no es válido: solo se permiten letras y espacios.");
+            } else {
+                return entrada;
+            }
+        }
     }
 
     private static String leerCodigoAlfanumerico(Scanner sc, String mensaje) {
-        System.out.print(mensaje);
-        String entrada = sc.nextLine().trim().toUpperCase();
-        if (entrada.isEmpty()) {
-            throw new IllegalArgumentException("El código/identificación no puede estar vacío.");
+        while (true) {
+            String entrada = leerCampo(sc, mensaje).toUpperCase();
+            if (entrada.isEmpty()) {
+                error("El código no puede estar vacío.");
+            } else if (!entrada.matches("^(?=.*[\\p{L}])(?=.*[0-9])[\\p{L}0-9-]+$")) {
+                error("'" + entrada + "' no es válido: debe combinar letras y números (ej. PQ731 o REP-101).");
+            } else {
+                return entrada;
+            }
         }
-        if (!entrada.matches("^(?=.*[\\p{L}])(?=.*[0-9])[\\p{L}0-9-]+$")) {
-            throw new IllegalArgumentException("Código inválido ('" + entrada + "'): Debe combinar letras y números (ej. PQ731 o REP-101), no puede ser solo números.");
-        }
-        return entrada;
     }
 
     private static double leerDoublePositivo(Scanner sc, String mensaje) {
-        System.out.print(mensaje);
-        String entrada = sc.nextLine().trim().replace(',', '.');
-        double valor;
-        try {
-            valor = Double.parseDouble(entrada);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Valor inválido ('" + entrada + "'): Se esperaba un número decimal (ej. 4.5).");
+        while (true) {
+            String entrada = leerCampo(sc, mensaje).replace(',', '.');
+            try {
+                double valor = Double.parseDouble(entrada);
+                if (Double.isNaN(valor) || Double.isInfinite(valor) || valor <= 0) {
+                    error("El valor debe ser un número mayor que cero.");
+                } else {
+                    return valor;
+                }
+            } catch (NumberFormatException e) {
+                error("'" + entrada + "' no es un número (ej. 4.5).");
+            }
         }
-        if (Double.isNaN(valor) || Double.isInfinite(valor) || valor <= 0) {
-            throw new IllegalArgumentException("El valor debe ser estrictamente mayor que cero (> 0).");
-        }
-        return valor;
     }
 
     private static int leerEnteroPositivo(Scanner sc, String mensaje) {
-        System.out.print(mensaje);
-        String entrada = sc.nextLine().trim();
-        int valor;
-        try {
-            valor = Integer.parseInt(entrada);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Valor inválido ('" + entrada + "'): Se esperaba un número entero positivo.");
+        while (true) {
+            String entrada = leerCampo(sc, mensaje);
+            try {
+                int valor = Integer.parseInt(entrada);
+                if (valor <= 0) {
+                    error("El número debe ser un entero mayor que cero.");
+                } else {
+                    return valor;
+                }
+            } catch (NumberFormatException e) {
+                error("'" + entrada + "' no es un número entero válido.");
+            }
         }
-        if (valor <= 0) {
-            throw new IllegalArgumentException("El número entero debe ser mayor que cero (> 0).");
-        }
-        return valor;
     }
 
     private static int leerEnteroEnRango(Scanner sc, String mensaje, int min, int max) {
         while (true) {
-            System.out.print(mensaje);
-            String entrada = sc.nextLine().trim();
+            String entrada = leerCampo(sc, mensaje);
             try {
                 int valor = Integer.parseInt(entrada);
                 if (valor >= min && valor <= max) {
                     return valor;
                 }
-                System.out.println("[!] Error: El número debe estar entre " + min + " y " + max + ".");
+                error("El número debe estar entre " + min + " y " + max + ".");
             } catch (NumberFormatException e) {
-                System.out.println("[!] Error: '" + entrada + "' no es un número entero válido.");
+                error("'" + entrada + "' no es un número entero válido.");
             }
         }
     }
 
+    // Igual que leerEnteroEnRango pero para el menú principal (aquí 'x' no aplica)
+    private static int leerOpcion(Scanner sc, String mensaje, int min, int max) {
+        while (true) {
+            System.out.print(mensaje);
+            String entrada = leerLinea(sc).trim();
+            try {
+                int valor = Integer.parseInt(entrada);
+                if (valor >= min && valor <= max) {
+                    return valor;
+                }
+            } catch (NumberFormatException e) {
+                // se informa abajo
+            }
+            System.out.println("   [!] Opción inválida: escriba un número entre " + min + " y " + max + ".");
+        }
+    }
+
     private static boolean leerSiNo(Scanner sc, String mensaje) {
-        System.out.print(mensaje);
-        String entrada = sc.nextLine().trim().toLowerCase();
-        if (entrada.equals("s") || entrada.equals("si") || entrada.equals("sí")) {
-            return true;
+        while (true) {
+            String entrada = leerCampo(sc, mensaje).toLowerCase();
+            if (entrada.equals("s") || entrada.equals("si") || entrada.equals("sí")) {
+                return true;
+            }
+            if (entrada.equals("n") || entrada.equals("no")) {
+                return false;
+            }
+            error("Responda 's' (sí) o 'n' (no).");
         }
-        if (entrada.equals("n") || entrada.equals("no")) {
-            return false;
-        }
-        throw new IllegalArgumentException("Respuesta inválida ('" + entrada + "'): Debe responder 's' (sí) o 'n' (no).");
     }
 
     private static void cargarDatosBase(CentroDistribucion c) {

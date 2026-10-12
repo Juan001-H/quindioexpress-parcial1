@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -16,6 +17,7 @@ import java.util.TreeSet;
 import modelo.ComparadoresPaquete;
 import modelo.Paquete;
 import modelo.Repartidor;
+import modelo.Texto;
 
 public class CentroDistribucion {
 
@@ -23,10 +25,12 @@ public class CentroDistribucion {
     private final Map<String, Paquete> paquetesPorCodigo;
     private final Set<String> municipiosDestino;
     private final Set<String> municipiosOrdenados;
-    private final Map<String, List<Paquete>> paquetesPorMunicipio;
+    private final Map<String, List<Paquete>> paquetesPorMunicipio; // clave: municipio normalizado
+    private final Map<String, String> nombresMunicipio;            // municipio normalizado -> nombre oficial
     private final Queue<Paquete> colaOrdenLlegada;
     private final PriorityQueue<Paquete> colaPrioridad;
     private final Map<String, Repartidor> repartidoresPorId;
+    private final Map<String, Paquete> paquetesEnRuta;             // id repartidor -> paquete que lleva
     private final ColeccionSimple<Paquete> historialEntregas;
 
     public CentroDistribucion() {
@@ -35,9 +39,11 @@ public class CentroDistribucion {
         this.municipiosDestino = new HashSet<>();
         this.municipiosOrdenados = new TreeSet<>();
         this.paquetesPorMunicipio = new HashMap<>();
+        this.nombresMunicipio = new HashMap<>();
         this.colaOrdenLlegada = new ArrayDeque<>();
         this.colaPrioridad = new PriorityQueue<>(ComparadoresPaquete.DESPACHO_PRIORITARIO);
-        this.repartidoresPorId = new HashMap<>();
+        this.repartidoresPorId = new LinkedHashMap<>(); // conserva el orden de registro al listarlos
+        this.paquetesEnRuta = new LinkedHashMap<>();
         this.historialEntregas = new ListaSimplementeEnlazada<>();
     }
 
@@ -54,15 +60,23 @@ public class CentroDistribucion {
             return false; // Rechaza duplicados en O(1)
         }
 
+        // "Calarca" y "Calarcá" son el mismo municipio: se guarda con el primer nombre registrado
+        String claveMunicipio = Texto.normalizar(p.getDestino());
+        String nombreMunicipio = nombresMunicipio.get(claveMunicipio);
+        if (nombreMunicipio == null) {
+            nombreMunicipio = p.getDestino();
+            nombresMunicipio.put(claveMunicipio, nombreMunicipio);
+        }
+
         paquetesOrdenLlegada.add(p);
         paquetesPorCodigo.put(codigoClave, p);
-        municipiosDestino.add(p.getDestino());
-        municipiosOrdenados.add(p.getDestino());
+        municipiosDestino.add(nombreMunicipio);
+        municipiosOrdenados.add(nombreMunicipio);
 
-        List<Paquete> listaMunicipio = paquetesPorMunicipio.get(p.getDestino());
+        List<Paquete> listaMunicipio = paquetesPorMunicipio.get(claveMunicipio);
         if (listaMunicipio == null) {
             listaMunicipio = new ArrayList<>();
-            paquetesPorMunicipio.put(p.getDestino(), listaMunicipio);
+            paquetesPorMunicipio.put(claveMunicipio, listaMunicipio);
         }
         listaMunicipio.add(p);
 
@@ -98,6 +112,22 @@ public class CentroDistribucion {
         return repartidoresPorId.get(identificacion.trim().toUpperCase());
     }
 
+    /**
+     * Si el municipio ya existe (ignorando mayúsculas y tildes) retorna el nombre ya registrado;
+     * si no, lo retorna formateado. Así "calarca" se convierte en "Calarcá".
+     */
+    public String resolverNombreMunicipio(String municipio) {
+        if (municipio == null || municipio.trim().isEmpty()) {
+            return municipio;
+        }
+        String existente = nombresMunicipio.get(Texto.normalizar(municipio));
+        return existente != null ? existente : Texto.formatearNombrePropio(municipio);
+    }
+
+    private static boolean mismoMunicipio(String a, String b) {
+        return Texto.normalizar(a).equals(Texto.normalizar(b));
+    }
+
     public Set<String> obtenerMunicipiosConEntregas() {
         return new HashSet<>(municipiosDestino);
     }
@@ -110,12 +140,8 @@ public class CentroDistribucion {
         if (municipio == null || municipio.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        for (Map.Entry<String, List<Paquete>> entry : paquetesPorMunicipio.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase(municipio.trim())) {
-                return new ArrayList<>(entry.getValue());
-            }
-        }
-        return Collections.emptyList();
+        List<Paquete> lista = paquetesPorMunicipio.get(Texto.normalizar(municipio)); // O(1)
+        return lista == null ? Collections.<Paquete>emptyList() : new ArrayList<>(lista);
     }
 
     public Repartidor buscarRepartidorDisponibleParaZona(String destino) {
@@ -123,7 +149,7 @@ public class CentroDistribucion {
             return null;
         }
         for (Repartidor r : repartidoresPorId.values()) {
-            if (r.isDisponible() && r.getZona().equalsIgnoreCase(destino.trim())) {
+            if (r.isDisponible() && mismoMunicipio(r.getZona(), destino)) {
                 return r;
             }
         }
@@ -136,15 +162,13 @@ public class CentroDistribucion {
         }
 
         Paquete siguiente = colaOrdenLlegada.peek();
-        if (!repartidor.getZona().equalsIgnoreCase(siguiente.getDestino())) {
+        if (!mismoMunicipio(repartidor.getZona(), siguiente.getDestino())) {
             return null;
         }
 
         colaOrdenLlegada.poll();
         colaPrioridad.remove(siguiente);
-
-        repartidor.setDisponible(false);
-        historialEntregas.agregar(siguiente);
+        asignar(siguiente, repartidor);
 
         return siguiente;
     }
@@ -167,15 +191,13 @@ public class CentroDistribucion {
         }
 
         Paquete prioritario = colaPrioridad.peek();
-        if (!repartidor.getZona().equalsIgnoreCase(prioritario.getDestino())) {
+        if (!mismoMunicipio(repartidor.getZona(), prioritario.getDestino())) {
             return null;
         }
 
         colaPrioridad.poll();
         colaOrdenLlegada.remove(prioritario);
-
-        repartidor.setDisponible(false);
-        historialEntregas.agregar(prioritario);
+        asignar(prioritario, repartidor);
 
         return prioritario;
     }
@@ -190,6 +212,42 @@ public class CentroDistribucion {
             return null;
         }
         return atenderSiguientePorPrioridad(repartidor);
+    }
+
+    // El paquete sale de pendientes y queda "en ruta" con el repartidor, que pasa a no disponible
+    private void asignar(Paquete paquete, Repartidor repartidor) {
+        repartidor.setDisponible(false);
+        paquetesEnRuta.put(repartidor.getIdentificacion(), paquete);
+    }
+
+    /**
+     * Registra que el repartidor entregó el paquete que llevaba: el paquete pasa al historial
+     * (lista propia, en el orden real de entrega) y el repartidor vuelve a estar disponible.
+     * Retorna el paquete entregado, o null si ese repartidor no tenía ningún paquete en ruta.
+     */
+    public Paquete registrarEntrega(String identificacionRepartidor) {
+        Repartidor repartidor = consultarRepartidorPorId(identificacionRepartidor);
+        if (repartidor == null) {
+            return null;
+        }
+        Paquete entregado = paquetesEnRuta.remove(repartidor.getIdentificacion());
+        if (entregado == null) {
+            return null;
+        }
+        historialEntregas.agregar(entregado);
+        repartidor.setDisponible(true);
+        return entregado;
+    }
+
+    public Paquete obtenerPaqueteEnRuta(String identificacionRepartidor) {
+        if (identificacionRepartidor == null) {
+            return null;
+        }
+        return paquetesEnRuta.get(identificacionRepartidor.trim().toUpperCase());
+    }
+
+    public Map<String, Paquete> getPaquetesEnRuta() {
+        return Collections.unmodifiableMap(paquetesEnRuta);
     }
 
     public Paquete verSiguienteEnColaLlegada() {
@@ -224,8 +282,9 @@ public class CentroDistribucion {
         return copia;
     }
 
+    // Vistas de solo lectura: desde afuera no se puede alterar el orden de registro
     public List<Paquete> getPaquetesOrdenLlegada() {
-        return paquetesOrdenLlegada;
+        return Collections.unmodifiableList(paquetesOrdenLlegada);
     }
 
     public ColeccionSimple<Paquete> getHistorialEntregas() {
@@ -233,7 +292,7 @@ public class CentroDistribucion {
     }
 
     public Map<String, Repartidor> getRepartidoresPorId() {
-        return repartidoresPorId;
+        return Collections.unmodifiableMap(repartidoresPorId);
     }
 
     public int obtenerCantidadPendientes() {
@@ -248,15 +307,16 @@ public class CentroDistribucion {
         if (municipio == null || municipio.trim().isEmpty()) {
             return 0.0;
         }
-        return calcularPesoTotalRecursivo(paquetesOrdenLlegada, municipio.trim(), 0);
+        return calcularPesoTotalRecursivo(paquetesOrdenLlegada, Texto.normalizar(municipio), 0);
     }
 
+    // 'municipio' llega normalizado (minúsculas y sin tildes)
     private double calcularPesoTotalRecursivo(List<Paquete> lista, String municipio, int indice) {
         if (indice >= lista.size()) {
             return 0.0;
         }
         Paquete actual = lista.get(indice);
-        double pesoActual = actual.getDestino().equalsIgnoreCase(municipio) ? actual.getPeso() : 0.0;
+        double pesoActual = Texto.normalizar(actual.getDestino()).equals(municipio) ? actual.getPeso() : 0.0;
         return pesoActual + calcularPesoTotalRecursivo(lista, municipio, indice + 1);
     }
 

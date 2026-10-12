@@ -33,8 +33,8 @@ public class Repartidor {
         }
 
         this.identificacion = idLimpio;
-        this.nombre = nombre.trim();
-        this.zona = zona.trim();
+        this.nombre = Texto.formatearNombrePropio(nombre);
+        this.zona = Texto.formatearNombrePropio(zona);
         this.disponible = disponible;
     }
 
