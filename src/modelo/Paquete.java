@@ -14,11 +14,23 @@ public class Paquete implements Comparable<Paquete> {
         if (codigo == null || codigo.trim().isEmpty()) {
             throw new IllegalArgumentException("El código del paquete no puede ser nulo ni vacío.");
         }
-        if (destino == null || destino.trim().isEmpty()) {
-            throw new IllegalArgumentException("El destino del paquete no puede ser nulo ni vacío.");
+        String codLimpio = codigo.trim().toUpperCase();
+        // Debe contener al menos una letra y un número (ej. PQ731). Rechaza solo números como "564"
+        if (!codLimpio.matches("^(?=.*[\\p{L}])(?=.*[0-9])[\\p{L}0-9-]+$")) {
+            throw new IllegalArgumentException("El código '" + codigo + "' es inválido. Debe ser alfanumérico (letras y números, ej. PQ731).");
         }
-        if (peso <= 0) {
-            throw new IllegalArgumentException("El peso del paquete debe ser mayor que cero.");
+
+        if (destino == null || destino.trim().isEmpty()) {
+            throw new IllegalArgumentException("El municipio destino no puede ser nulo ni vacío.");
+        }
+        String destLimpio = destino.trim();
+        // Solo permite letras y espacios (rechaza números como "65" o símbolos)
+        if (!destLimpio.matches("^[\\p{L}\\s]+$")) {
+            throw new IllegalArgumentException("El destino '" + destino + "' es inválido. Solo debe contener letras (no números).");
+        }
+
+        if (Double.isNaN(peso) || Double.isInfinite(peso) || peso <= 0) {
+            throw new IllegalArgumentException("El peso del paquete debe ser un número mayor que cero.");
         }
         if (prioridad < 1 || prioridad > 5) {
             throw new IllegalArgumentException("La prioridad debe estar comprendida entre 1 y 5.");
@@ -27,11 +39,26 @@ public class Paquete implements Comparable<Paquete> {
             throw new IllegalArgumentException("El tiempo estimado debe ser un entero positivo mayor que cero.");
         }
 
-        this.codigo = codigo.trim();
-        this.destino = destino.trim();
+        this.codigo = codLimpio;
+        this.destino = formatearNombrePropio(destLimpio);
         this.peso = peso;
         this.prioridad = prioridad;
         this.tiempoEstimado = tiempoEstimado;
+    }
+
+    private static String formatearNombrePropio(String texto) {
+        String[] palabras = texto.toLowerCase().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < palabras.length; i++) {
+            if (!palabras[i].isEmpty()) {
+                sb.append(Character.toUpperCase(palabras[i].charAt(0)))
+                  .append(palabras[i].substring(1));
+                if (i < palabras.length - 1) {
+                    sb.append(" ");
+                }
+            }
+        }
+        return sb.toString();
     }
 
     public String getCodigo() {
@@ -54,9 +81,6 @@ public class Paquete implements Comparable<Paquete> {
         return tiempoEstimado;
     }
 
-    /**
-     * Orden natural del paquete: por código en orden alfabético ascendente.
-     */
     @Override
     public int compareTo(Paquete otro) {
         if (otro == null) {
@@ -65,9 +89,6 @@ public class Paquete implements Comparable<Paquete> {
         return this.codigo.compareTo(otro.codigo);
     }
 
-    /**
-     * Dos paquetes son iguales si tienen el mismo código único.
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -85,7 +106,7 @@ public class Paquete implements Comparable<Paquete> {
         return Objects.hash(this.codigo);
     }
 
-@Override
+    @Override
     public String toString() {
         return String.format("Paquete[codigo=%s, destino=%s, peso=%.2f kg, prioridad=%d, tiempo=%d min]",
                 codigo, destino, peso, prioridad, tiempoEstimado);

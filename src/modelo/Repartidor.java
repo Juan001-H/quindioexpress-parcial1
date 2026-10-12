@@ -13,14 +13,26 @@ public class Repartidor {
         if (identificacion == null || identificacion.trim().isEmpty()) {
             throw new IllegalArgumentException("La identificación del repartidor no puede ser nula ni vacía.");
         }
+        String idLimpio = identificacion.trim().toUpperCase();
+        if (!idLimpio.matches("^[\\p{L}0-9-]+$")) {
+            throw new IllegalArgumentException("La identificación solo puede contener letras, números o guiones (ej. REP-101).");
+        }
+
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del repartidor no puede ser nulo ni vacío.");
         }
+        if (!nombre.trim().matches("^[\\p{L}\\s]+$")) {
+            throw new IllegalArgumentException("El nombre '" + nombre + "' es inválido. Solo debe contener letras, no números.");
+        }
+
         if (zona == null || zona.trim().isEmpty()) {
             throw new IllegalArgumentException("La zona del repartidor no puede ser nula ni vacía.");
         }
+        if (!zona.trim().matches("^[\\p{L}\\s]+$")) {
+            throw new IllegalArgumentException("La zona '" + zona + "' es inválida. Solo debe contener letras, no números.");
+        }
 
-        this.identificacion = identificacion.trim();
+        this.identificacion = idLimpio;
         this.nombre = nombre.trim();
         this.zona = zona.trim();
         this.disponible = disponible;
@@ -63,11 +75,10 @@ public class Repartidor {
         return Objects.hash(this.identificacion);
     }
 
-@Override
+    @Override
     public String toString() {
-        return "Repartidor[identificacion=" + identificacion
-                + ", nombre=" + nombre
-                + ", zona=" + zona
-                + ", disponible=" + disponible + "]";
+        return String.format("Repartidor[id=%s, nombre=%s, zona=%s, disponible=%s]",
+                identificacion, nombre, zona, disponible ? "Sí" : "No");
     }
 }
+
