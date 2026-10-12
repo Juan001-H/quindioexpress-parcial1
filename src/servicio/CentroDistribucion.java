@@ -286,6 +286,11 @@ public class CentroDistribucion {
     public List<Paquete> getPaquetesOrdenLlegada() {
         return Collections.unmodifiableList(paquetesOrdenLlegada);
     }
+    
+    // Novedad: Obtiene solo los paquetes que actualmente están pendientes en el centro
+    public List<Paquete> obtenerPaquetesPendientes() {
+        return new ArrayList<>(colaOrdenLlegada);
+    }
 
     public ColeccionSimple<Paquete> getHistorialEntregas() {
         return historialEntregas;
@@ -297,6 +302,37 @@ public class CentroDistribucion {
 
     public int obtenerCantidadPendientes() {
         return colaOrdenLlegada.size();
+    }
+    
+    // Novedad: Permite borrar de forma segura un paquete registrado por error
+    public boolean eliminarPaquetePendiente(String codigo) {
+        if (codigo == null || codigo.trim().isEmpty()) {
+            return false;
+        }
+        String codLimpio = codigo.trim().toUpperCase();
+
+        Paquete p = paquetesPorCodigo.get(codLimpio);
+        if (p == null) {
+            return false; // No existe
+        }
+
+        // Validar que realmente esté pendiente (si no está en colaOrdenLlegada, ya está en ruta o entregado)
+        if (!colaOrdenLlegada.contains(p)) {
+            return false;
+        }
+
+        // Eliminar de todas las colecciones donde esté almacenado como pendiente
+        paquetesPorCodigo.remove(codLimpio);
+        paquetesOrdenLlegada.remove(p);
+        colaOrdenLlegada.remove(p);
+        colaPrioridad.remove(p);
+
+        String claveMunicipio = Texto.normalizar(p.getDestino());
+        List<Paquete> listaMun = paquetesPorMunicipio.get(claveMunicipio);
+        if (listaMun != null) {
+            listaMun.remove(p);
+        }
+        return true;
     }
 
     // =========================================================================
