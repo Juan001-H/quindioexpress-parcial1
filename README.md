@@ -50,27 +50,50 @@ src/
 └── servicio/
     └── CentroDistribucion.java       Colecciones y operaciones del sistema
 docs/
-└── Parcial1_QuindioExpress_PartesA_C.pdf   Parte A (diseño) y Parte C (pruebas y complejidad)
+├── Parcial1_QuindioExpress_PartesA_C.pdf   Parte A (diseño) y Parte C (pruebas y complejidad)
+└── Guia_Codigo_QuindioExpress.pdf          Explicación de todo el código, clase por clase
 ```
 
 ## Menú del programa
 
+El menú está organizado en cuatro grupos.
+
+**Gestión operativa**
+
 | Opción | Qué hace | Estructura / algoritmo |
 |---|---|---|
 | 1 | Registrar un paquete nuevo (valida cada campo y que el código no exista) | `HashMap`, `ArrayList`, `HashSet`, `TreeSet`, `ArrayDeque`, `PriorityQueue` |
-| 2 | Consultar un paquete por código | `HashMap` — O(1) |
-| 3 | Ver municipios sin repetir y en orden alfabético | `HashSet` y `TreeSet` |
+| 2 | Buscar un paquete por código | `HashMap` — O(1) |
+| 3 | Ver las zonas (municipios) con paquetes, sin repetir y en orden alfabético | `HashSet` y `TreeSet` |
 | 4 | Ver los paquetes de un municipio | `HashMap<String, List<Paquete>>` |
+| 15 | Ver todos los paquetes pendientes en bodega, en orden de llegada | `ArrayDeque` → copia en `ArrayList` |
+| 16 | Eliminar un paquete pendiente registrado por error (se quita de todas las estructuras) | `HashMap`, colas, listas y `Set` |
+
+**Despachos y entregas**
+
+| Opción | Qué hace | Estructura / algoritmo |
+|---|---|---|
 | 5 | Despachar el siguiente paquete por orden de llegada | `Queue` (`ArrayDeque`) — FIFO |
-| 6 | Despachar el siguiente paquete por prioridad | `PriorityQueue` + `Comparator` |
-| 7 | Reportes ordenados por código, prioridad, peso o tiempo | `Comparable` y `Comparator` |
+| 6 | Despachar el paquete de mayor prioridad | `PriorityQueue` + `Comparator` |
 | 8 | Ver, registrar o cambiar la disponibilidad de repartidores | `LinkedHashMap` |
-| 9 | Historial de entregas: recorrer, obtener por índice y eliminar | `ListaSimplementeEnlazada` propia |
+| 14 | Registrar la entrega de un repartidor (el paquete pasa al historial y el repartidor queda libre) | `LinkedHashMap` + lista propia |
+| 9 | Ver el historial de entregas en el orden real | `ListaSimplementeEnlazada` propia + `Iterator` |
+
+**Análisis algorítmico**
+
+| Opción | Qué hace | Estructura / algoritmo |
+|---|---|---|
 | 10 | Peso total de los paquetes de un municipio | Recursividad |
 | 11 | Cantidad de paquetes con prioridad mayor o igual a un valor | Recursividad |
 | 12 | Buscar un paquete por código en la lista ordenada | Búsqueda binaria recursiva |
 | 13 | Paquete de mayor peso | Divide y vencerás |
-| 14 | Registrar la entrega de un repartidor | Pasa el paquete al historial y libera al repartidor |
+
+**Reportes y pruebas**
+
+| Opción | Qué hace | Estructura / algoritmo |
+|---|---|---|
+| 7 | Reportes ordenados por llegada, código, prioridad, peso o tiempo | `Comparable` y `Comparator` |
+| 17 | Demostración de la lista propia: los 6 casos de eliminación (vacía, único, primero, intermedio, último e inexistente) y obtener un elemento por posición | `ListaSimplementeEnlazada<String>` |
 | 0 | Salir | |
 
 En cualquier campo de una operación se puede escribir **`x`** para cancelarla y volver al menú.
@@ -94,6 +117,7 @@ Para despachar un paquete debe existir un repartidor **disponible** cuya **zona 
 - Destino, nombre y zona no pueden estar vacíos ni contener números o símbolos.
 - `Calarca`, `calarcá` y `CALARCÁ` se reconocen como el mismo municipio, así que no se crean municipios duplicados.
 - Un repartidor no disponible no recibe nuevas asignaciones, y uno con un paquete en ruta no se puede liberar sin registrar la entrega.
+- Solo se pueden eliminar paquetes **pendientes**: uno que ya salió en ruta o que ya se entregó no se borra, para no alterar el historial. Si se borra el último paquete de un municipio, el municipio deja de aparecer en la opción 3.
 - Si un dato es inválido, el programa explica el error y vuelve a preguntar **solo ese campo**, sin perder lo que ya se había escrito.
 - Si la entrada se cierra (Ctrl+D / Ctrl+Z), el programa termina de forma ordenada.
 
@@ -116,4 +140,4 @@ Para despachar un paquete debe existir un repartidor **disponible** cuya **zona 
 | Despacho prioritario | `PriorityQueue` | El más urgente siempre queda al frente; `poll` en O(log n) |
 | Historial de entregas | `ListaSimplementeEnlazada` propia | La exige el enunciado; `agregar` en O(1) gracias a la referencia `cola` |
 
-El análisis completo (tablas, pilas de llamadas, pruebas de escritorio y complejidad) está en [`docs/Parcial1_QuindioExpress_PartesA_C.pdf`](docs/Parcial1_QuindioExpress_PartesA_C.pdf).
+El análisis completo (tablas, pilas de llamadas, pruebas de escritorio y complejidad) está en [`docs/Parcial1_QuindioExpress_PartesA_C.pdf`](docs/Parcial1_QuindioExpress_PartesA_C.pdf), y la explicación de todo el código en [`docs/Guia_Codigo_QuindioExpress.pdf`](docs/Guia_Codigo_QuindioExpress.pdf).

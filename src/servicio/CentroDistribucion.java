@@ -331,6 +331,13 @@ public class CentroDistribucion {
         List<Paquete> listaMun = paquetesPorMunicipio.get(claveMunicipio);
         if (listaMun != null) {
             listaMun.remove(p);
+            // Si era el último paquete de ese municipio, el municipio deja de tener paquetes registrados
+            if (listaMun.isEmpty()) {
+                paquetesPorMunicipio.remove(claveMunicipio);
+                String nombreMunicipio = nombresMunicipio.remove(claveMunicipio);
+                municipiosDestino.remove(nombreMunicipio);
+                municipiosOrdenados.remove(nombreMunicipio);
+            }
         }
         return true;
     }

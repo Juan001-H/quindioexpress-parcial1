@@ -56,7 +56,7 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
             
             System.out.println("\n [ 🧠 ANÁLISIS ALGORÍTMICO ]                   [ ⚙️ REPORTES Y PRUEBAS DEL SISTEMA ]");
             System.out.println(" 10. (Recursivo) Peso total por municipio       7. Generar reportes de ordenamiento");
-            System.out.println(" 11. (Recursivo) Contar por prioridad alta     17. Prueba estricta: 6 Casos Lista Propia");
+            System.out.println(" 11. (Recursivo) Contar por prioridad alta     17. Lista propia: eliminar (6 casos) y obtener");
             System.out.println(" 12. (B. Binaria) Buscar paquete en lista");
             System.out.println(" 13. (Divide/Vencerás) Hallar el más pesado");
             System.out.println("------------------------------------------------------------------------------------------");
@@ -269,23 +269,24 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
     }
 
     // =========================================================================
-    // NUEVA OPCIÓN 17: SUBMENÚ INTERACTIVO PARA LOS 6 CASOS DE ELIMINACIÓN
+    // OPCIÓN 17: DEMOSTRACIÓN DE LA LISTA PROPIA (6 CASOS DE ELIMINACIÓN + OBTENER POR POSICIÓN)
     // =========================================================================
     private static void opcionPruebaEliminacionLista(Scanner sc) {
         int subOpcion = -1;
         
         while (subOpcion != 0) {
-            System.out.println("\n--- 17. PRUEBA INTERACTIVA DE ELIMINACIÓN (LISTA PROPIA) ---");
-            System.out.println("¿Qué caso específico de eliminación deseas demostrar?");
+            System.out.println("\n--- 17. DEMOSTRACIÓN DE LA LISTA PROPIA ---");
+            System.out.println("¿Qué caso deseas demostrar?");
             System.out.println(" 1. Caso 1: Intentar eliminar en una lista vacía");
             System.out.println(" 2. Caso 2: Eliminar el único elemento de la lista");
             System.out.println(" 3. Caso 3: Eliminar el primer elemento (la cabeza)");
             System.out.println(" 4. Caso 4: Eliminar un elemento intermedio");
             System.out.println(" 5. Caso 5: Eliminar el último elemento (la cola)");
             System.out.println(" 6. Caso 6: Intentar eliminar un elemento inexistente");
+            System.out.println(" 7. Obtener un elemento según su posición");
             System.out.println(" 0. Volver al menú principal");
             
-            subOpcion = leerEnteroEnRango(sc, "\n-> Elige el caso a probar (0-6): ", 0, 6);
+            subOpcion = leerEnteroEnRango(sc, "\n-> Elige el caso a probar (0-7): ", 0, 7);
             
             if (subOpcion == 0) {
                 System.out.println("Volviendo al menú principal...");
@@ -347,6 +348,20 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
                     System.out.println("  -> Intentando ejecutar eliminar('Z')...");
                     System.out.println("  -> Resultado devuelto: " + listaPrueba.eliminar("Z"));
                     System.out.print("  Estado final de la lista:   "); imprimirListaPrueba(listaPrueba);
+                    break;
+
+                case 7:
+                    listaPrueba.agregar("A"); listaPrueba.agregar("B"); listaPrueba.agregar("C");
+                    System.out.println("\n> OBTENER SEGÚN LA POSICIÓN (las posiciones empiezan en 0)");
+                    System.out.print("  Estado de la lista: "); imprimirListaPrueba(listaPrueba);
+                    System.out.println("  -> Tamaño de la lista: " + listaPrueba.tamano());
+                    int pos = leerEnteroEnRango(sc, "  ¿Qué posición quieres obtener? (0 a "
+                            + (listaPrueba.tamano() - 1) + ", o un número mayor para ver el error): ", 0, 99);
+                    try {
+                        System.out.println("  -> obtener(" + pos + ") devolvió: " + listaPrueba.obtener(pos));
+                    } catch (IndexOutOfBoundsException e) {
+                        System.out.println("  -> obtener(" + pos + ") lanzó IndexOutOfBoundsException: " + e.getMessage());
+                    }
                     break;
             }
             
