@@ -66,34 +66,33 @@ El menú está organizado en cuatro grupos.
 | 2 | Buscar un paquete por código | `HashMap` — O(1) |
 | 3 | Ver las zonas (municipios) con paquetes, sin repetir y en orden alfabético | `HashSet` y `TreeSet` |
 | 4 | Ver los paquetes de un municipio | `HashMap<String, List<Paquete>>` |
-| 15 | Ver todos los paquetes pendientes en bodega, en orden de llegada | `ArrayDeque` → copia en `ArrayList` |
-| 16 | Eliminar un paquete pendiente registrado por error (se quita de todas las estructuras) | `HashMap`, colas, listas y `Set` |
+| 9 | Ver todos los paquetes pendientes en bodega, en orden de llegada | `ArrayDeque` → copia en `ArrayList` |
+| 10 | Eliminar un paquete pendiente registrado por error (se quita de todas las estructuras) | `HashMap`, colas, listas y `Set` |
 
 **Despachos y entregas**
 
 | Opción | Qué hace | Estructura / algoritmo |
 |---|---|---|
-| 5 | Despachar el siguiente paquete por orden de llegada | `Queue` (`ArrayDeque`) — FIFO |
-| 6 | Despachar el paquete de mayor prioridad | `PriorityQueue` + `Comparator` |
-| 8 | Ver, registrar o cambiar la disponibilidad de repartidores | `LinkedHashMap` |
-| 14 | Registrar la entrega de un repartidor (el paquete pasa al historial y el repartidor queda libre) | `LinkedHashMap` + lista propia |
-| 9 | Ver el historial de entregas en el orden real | `ListaSimplementeEnlazada` propia + `Iterator` |
+| 5 | Despachar: 1) por orden de llegada o 2) por prioridad | `ArrayDeque` (FIFO) / `PriorityQueue` + `Comparator` |
+| 6 | Ver, registrar o cambiar la disponibilidad de repartidores | `LinkedHashMap` |
+| 7 | Registrar la entrega de un repartidor (el paquete pasa al historial y el repartidor queda libre) | `LinkedHashMap` + lista propia |
+| 8 | Ver el historial de entregas en el orden real | `ListaSimplementeEnlazada` propia + `Iterator` |
 
 **Análisis algorítmico**
 
 | Opción | Qué hace | Estructura / algoritmo |
 |---|---|---|
-| 10 | Peso total de los paquetes de un municipio | Recursividad |
-| 11 | Cantidad de paquetes con prioridad mayor o igual a un valor | Recursividad |
-| 12 | Buscar un paquete por código en la lista ordenada | Búsqueda binaria recursiva |
-| 13 | Paquete de mayor peso | Divide y vencerás |
+| 11 | Peso total de los paquetes de un municipio | Recursividad |
+| 12 | Cantidad de paquetes con prioridad mayor o igual a un valor | Recursividad |
+| 13 | Buscar un paquete por código en la lista ordenada | Búsqueda binaria recursiva |
+| 14 | Paquete de mayor peso | Divide y vencerás |
 
 **Reportes y pruebas**
 
 | Opción | Qué hace | Estructura / algoritmo |
 |---|---|---|
-| 7 | Reportes ordenados por llegada, código, prioridad, peso o tiempo | `Comparable` y `Comparator` |
-| 17 | Demostración de la lista propia: los 6 casos de eliminación (vacía, único, primero, intermedio, último e inexistente) y obtener un elemento por posición | `ListaSimplementeEnlazada<String>` |
+| 15 | Reportes ordenados por llegada, código, prioridad, peso o tiempo | `Comparable` y `Comparator` |
+| 16 | Demostración de la lista propia: los 6 casos de eliminación y obtener un elemento por posición | `ListaSimplementeEnlazada<String>` |
 | 0 | Salir | |
 
 En cualquier campo de una operación se puede escribir **`x`** para cancelarla y volver al menú.
@@ -101,11 +100,11 @@ En cualquier campo de una operación se puede escribir **`x`** para cancelarla y
 ## Flujo de un paquete
 
 ```
-Registrado ──► Pendiente ──(opción 5 o 6)──► En ruta con un repartidor ──(opción 14)──► Historial de entregas
+Registrado ──► Pendiente ──(opción 5)──► En ruta con un repartidor ──(opción 7)──► Historial de entregas
                 (colas)                       repartidor = no disponible               repartidor = disponible
 ```
 
-Para despachar un paquete debe existir un repartidor **disponible** cuya **zona sea igual al destino** del paquete. Si no lo hay, el paquete se queda en la cola hasta que se registre una entrega (opción 14) o se libere un repartidor (opción 8).
+Para despachar un paquete debe existir un repartidor **disponible** cuya **zona sea igual al destino** del paquete. Si no lo hay, el paquete se queda en la cola hasta que se registre una entrega (opción 7) o se libere un repartidor (opción 6).
 
 ## Reglas validadas
 
