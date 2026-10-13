@@ -38,32 +38,32 @@ public class Main {
         sc.close();
     }
 
-private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
+    private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
         int opcion = -1;
         while (opcion != 0) {
             System.out.println("\n==========================================================================================");
-            System.out.println("                   QUINDÍO EXPRESS - SISTEMA DE GESTIÓN DE OPERACIONES");
+            System.out.println("                   QUINDIO EXPRESS - SISTEMA DE GESTION DE OPERACIONES");
             System.out.println("                   (Paquetes en Bodega: " + centro.obtenerCantidadPendientes() + " | Total Histórico: " + centro.getPaquetesOrdenLlegada().size() + ")");
             System.out.println("==========================================================================================");
             
-            System.out.println("\n [ 📦 GESTIÓN OPERATIVA ]                      [ 🚚 DESPACHOS Y ENTREGAS ]");
-            System.out.println("  1. Registrar un paquete nuevo                 5. Despachar (Orden de llegada)");
-            System.out.println("  2. Buscar paquete por código O(1)             6. Despachar (Mayor prioridad)");
-            System.out.println("  3. Ver zonas de destino activas               8. Administrar repartidores");
-            System.out.println("  4. Consultar paquetes de una zona            14. Registrar una entrega finalizada");
-            System.out.println(" 15. Ver todos los paquetes pendientes          9. Ver historial de entregas (Lista Propia)");
-            System.out.println(" 16. Corregir/Eliminar paquete del sistema");
+            System.out.println("\n [ GESTION OPERATIVA ]                         [ DESPACHOS Y ENTREGAS ]");
+            System.out.println("  1. Registrar un paquete nuevo                 5. Realizar despacho (Llegada/Prioridad)");
+            System.out.println("  2. Buscar paquete por código O(1)             6. Administrar repartidores (Ver/Agregar)");
+            System.out.println("  3. Ver zonas de destino activas               7. Registrar una entrega finalizada");
+            System.out.println("  4. Consultar paquetes de una zona             8. Ver historial de entregas (Lista Propia)");
+            System.out.println("  9. Ver todos los paquetes pendientes");
+            System.out.println(" 10. Corregir/Eliminar paquete del sistema");
             
-            System.out.println("\n [ 🧠 ANÁLISIS ALGORÍTMICO ]                   [ ⚙️ REPORTES Y PRUEBAS DEL SISTEMA ]");
-            System.out.println(" 10. (Recursivo) Peso total por municipio       7. Generar reportes de ordenamiento");
-            System.out.println(" 11. (Recursivo) Contar por prioridad alta     17. Prueba estricta: 6 Casos Lista Propia");
-            System.out.println(" 12. (B. Binaria) Buscar paquete en lista");
-            System.out.println(" 13. (Divide/Vencerás) Hallar el más pesado");
+            System.out.println("\n [ ANALISIS ALGORITMICO ]                      [ REPORTES Y PRUEBAS DEL SISTEMA ]");
+            System.out.println(" 11. (Recursivo) Peso total por municipio      15. Generar reportes de ordenamiento");
+            System.out.println(" 12. (Recursivo) Contar por prioridad alta     16. Prueba estricta: 6 Casos Lista Propia");
+            System.out.println(" 13. (B. Binaria) Buscar paquete en lista");
+            System.out.println(" 14. (Divide/Vencerás) Hallar el más pesado");
             System.out.println("------------------------------------------------------------------------------------------");
-            System.out.println("  0. Salir de la aplicación  |  (En cualquier momento escriba 'x' para cancelar acción)");
+            System.out.println("  0. Salir de la aplicacion  |  (En cualquier momento escriba 'x' para cancelar accion)");
             System.out.println("==========================================================================================\n");
 
-            opcion = leerOpcion(sc, "-> ¿Qué deseas hacer? (0-17): ", 0, 17);
+            opcion = leerOpcion(sc, "-> ¿Que deseas hacer? (0-16): ", 0, 16);
 
             try {
                 switch (opcion) {
@@ -75,22 +75,21 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
                         System.out.println("-> En orden alfabético (TreeSet):   " + centro.obtenerMunicipiosOrdenados());
                         break;
                     case 4: opcionPaquetesPorMunicipio(centro, sc); break;
-                    case 5: opcionDespacharLlegada(centro); break;
-                    case 6: opcionDespacharPrioridad(centro); break;
-                    case 7: opcionReportesOrdenados(centro, sc); break;
-                    case 8: opcionGestionarRepartidores(centro, sc); break;
-                    case 9: opcionHistorialEntregas(centro, sc); break;
-                    case 10: opcionRecursivaPesoMunicipio(centro, sc); break;
-                    case 11: opcionRecursivaContarPrioridad(centro, sc); break;
-                    case 12: opcionBusquedaBinaria(centro, sc); break;
-                    case 13:
-                        System.out.println("\n--- 13. EL PAQUETE MÁS PESADO (DIVIDE Y VENCERÁS) ---");
+                    case 5: opcionRealizarDespacho(centro, sc); break;
+                    case 6: opcionGestionarRepartidores(centro, sc); break;
+                    case 7: opcionRegistrarEntrega(centro, sc); break;
+                    case 8: opcionHistorialEntregas(centro, sc); break;
+                    case 9: opcionVerPendientes(centro); break;
+                    case 10: opcionEliminarPendiente(centro, sc); break;
+                    case 11: opcionRecursivaPesoMunicipio(centro, sc); break;
+                    case 12: opcionRecursivaContarPrioridad(centro, sc); break;
+                    case 13: opcionBusquedaBinaria(centro, sc); break;
+                    case 14:
+                        System.out.println("\n--- 14. EL PAQUETE MAS PESADO (DIVIDE Y VENCERAS) ---");
                         System.out.println("-> Resultado: " + centro.obtenerPaqueteMayorPesoDivideYVenceras());
                         break;
-                    case 14: opcionRegistrarEntrega(centro, sc); break;
-                    case 15: opcionVerPendientes(centro); break;
-                    case 16: opcionEliminarPendiente(centro, sc); break;
-                    case 17: opcionPruebaEliminacionLista(sc); break;
+                    case 15: opcionReportesOrdenados(centro, sc); break;
+                    case 16: opcionPruebaEliminacionLista(sc); break;
                     case 0:
                         System.out.println("Cerrando sesión en QuindíoExpress. ¡Hasta luego!");
                         break;
@@ -105,13 +104,12 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
                 System.out.println("\n[ERROR DEL SISTEMA]: " + e.getMessage());
             }
 
-            if (opcion != 0 && opcion != 17) {
+            if (opcion != 0 && opcion != 16) {
                 System.out.print("\n[Presione ENTER para continuar]");
                 leerLinea(sc);
             }
         }
     }
-    
 
     // =========================================================================
     // LÓGICA DE LAS OPCIONES DEL MENÚ
@@ -167,8 +165,23 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
         }
     }
 
+    // NUEVO SUBMENÚ QUE AGRUPA LOS DESPACHOS
+    private static void opcionRealizarDespacho(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 5. REALIZAR DESPACHO ---");
+        System.out.println("1. Despacho Normal (Por estricto orden de llegada)");
+        System.out.println("2. Despacho Prioritario (Por nivel de urgencia)");
+        System.out.println("0. Cancelar y volver al menú principal");
+
+        int sub = leerEnteroEnRango(sc, "\n-> ¿Qué tipo de despacho deseas hacer? (0-2): ", 0, 2);
+        if (sub == 1) {
+            opcionDespacharLlegada(centro);
+        } else if (sub == 2) {
+            opcionDespacharPrioridad(centro);
+        }
+    }
+
     private static void opcionDespacharLlegada(CentroDistribucion centro) {
-        System.out.println("\n--- 5. DESPACHO NORMAL (POR ORDEN DE LLEGADA) ---");
+        System.out.println("\n[ DESPACHO POR ORDEN DE LLEGADA ]");
         Paquete candidato = centro.verSiguienteEnColaLlegada();
         if (candidato == null) {
             System.out.println("\n[INFO] La fila está vacía, no hay nada por despachar.");
@@ -181,7 +194,7 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
         if (rep == null) {
             throw new IllegalArgumentException("No podemos sacar el '" + candidato.getCodigo()
                     + "' porque no hay repartidores libres en '" + candidato.getDestino()
-                    + "'. Revisa la opción 8 o registra una entrega en la 14.");
+                    + "'. Ve a la opción 6 para crear uno o a la 7 para liberar uno ocupado.");
         }
         
         Paquete atendido = centro.atenderSiguientePorOrdenLlegada(rep);
@@ -189,7 +202,7 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
     }
 
     private static void opcionDespacharPrioridad(CentroDistribucion centro) {
-        System.out.println("\n--- 6. DESPACHO PRIORITARIO ---");
+        System.out.println("\n[ DESPACHO PRIORITARIO ]");
         Paquete candidato = centro.verSiguienteEnColaPrioridad();
         if (candidato == null) {
             System.out.println("\n[INFO] La fila está vacía, no hay nada por despachar.");
@@ -202,7 +215,7 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
         if (rep == null) {
             throw new IllegalArgumentException("No podemos sacar el '" + candidato.getCodigo()
                     + "' porque no hay repartidores libres en '" + candidato.getDestino()
-                    + "'. Revisa la opción 8 o registra una entrega en la 14.");
+                    + "'. Ve a la opción 6 para crear uno o a la 7 para liberar uno ocupado.");
         }
         
         Paquete atendido = centro.atenderSiguientePorPrioridad(rep);
@@ -213,11 +226,49 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
         System.out.println("\n[DESPACHO CONFIRMADO]");
         System.out.println("-> Paquete: " + atendido);
         System.out.println("-> Repartidor: " + rep.getNombre() + " (" + rep.getIdentificacion() + ")");
-        System.out.println("Nota: El repartidor ahora aparece como ocupado. Usa la opción 14 cuando regrese.");
+        System.out.println("Nota: El repartidor ahora aparece como ocupado. Usa la opción 7 cuando regrese.");
+    }
+
+    private static void opcionGestionarRepartidores(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 6. ADMINISTRACIÓN DE REPARTIDORES ---");
+        for (Repartidor r : centro.getRepartidoresPorId().values()) {
+            Paquete enRuta = centro.obtenerPaqueteEnRuta(r.getIdentificacion());
+            System.out.println("   * " + r + (enRuta != null ? "  -> (Repartiendo el " + enRuta.getCodigo() + ")" : ""));
+        }
+        System.out.println("\nOpciones: [1] Agregar uno nuevo | [2] Cambiar su estado | [0] Volver al menú");
+        int sub = leerEnteroEnRango(sc, "¿Qué deseas hacer? (0-2): ", 0, 2);
+
+        if (sub == 1) {
+            String id = leerCodigoAlfanumerico(sc, "ID único (ej. REP-800): ");
+            while (centro.consultarRepartidorPorId(id) != null) {
+                error("Ese ID ya lo tiene otro repartidor.");
+                id = leerCodigoAlfanumerico(sc, "ID único (ej. REP-800): ");
+            }
+            String nombre = leerTextoSoloLetras(sc, "Nombre completo: ");
+            String zona = centro.resolverNombreMunicipio(leerTextoSoloLetras(sc, "¿En qué municipio trabaja?: "));
+            boolean disp = leerSiNo(sc, "¿Está disponible para trabajar ya mismo? (s/n): ");
+
+            Repartidor nuevo = new Repartidor(id, nombre, zona, disp);
+            centro.registrarRepartidor(nuevo);
+            System.out.println("\n[ÉXITO] Repartidor guardado en la base de datos.");
+        } else if (sub == 2) {
+            String id = leerCodigoAlfanumerico(sc, "Escribe el ID del repartidor que vas a editar (ej. REP-101): ");
+            Repartidor rep = centro.consultarRepartidorPorId(id);
+            if (rep == null) {
+                throw new IllegalArgumentException("No encontré a nadie con ese ID.");
+            }
+            Paquete enRuta = centro.obtenerPaqueteEnRuta(rep.getIdentificacion());
+            if (enRuta != null) {
+                throw new IllegalArgumentException("No le puedes cambiar el estado ahorita porque está ocupado entregando el " + enRuta.getCodigo() + ". Ve a la opción 7.");
+            }
+            boolean disp = leerSiNo(sc, "¿Lo marcamos como DISPONIBLE? (s/n): ");
+            rep.setDisponible(disp);
+            System.out.println("\n[ÉXITO] Listo, estado actualizado.");
+        }
     }
 
     private static void opcionRegistrarEntrega(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 14. REGISTRAR UNA ENTREGA FINALIZADA ---");
+        System.out.println("\n--- 7. REGISTRAR UNA ENTREGA FINALIZADA ---");
         Map<String, Paquete> enRuta = centro.getPaquetesEnRuta();
         
         if (enRuta.isEmpty()) {
@@ -243,8 +294,25 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
         System.out.println("-> El repartidor quedó libre para recibir otra asignación.");
     }
 
+    private static void opcionHistorialEntregas(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 8. HISTORIAL OFICIAL DE ENTREGAS ---");
+        ColeccionSimple<Paquete> hist = centro.getHistorialEntregas();
+        System.out.println("Total de paquetes ya entregados: " + hist.tamano());
+
+        if (hist.estaVacia()) {
+            System.out.println("\n   (Aún está vacío. Haz un despacho primero y luego registra la entrega).");
+            return;
+        }
+
+        System.out.println("");
+        int idx = 0;
+        for (Paquete p : hist) {
+            System.out.println("   [Entrega N°" + (++idx) + "] -> " + p);
+        }
+    }
+
     private static void opcionVerPendientes(CentroDistribucion centro) {
-        System.out.println("\n--- 15. PAQUETES ACTUALMENTE EN LA BODEGA ---");
+        System.out.println("\n--- 9. PAQUETES ACTUALMENTE EN LA BODEGA ---");
         List<Paquete> pendientes = centro.obtenerPaquetesPendientes();
         
         if (pendientes.isEmpty()) {
@@ -258,7 +326,7 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
     }
 
     private static void opcionEliminarPendiente(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 16. ELIMINAR PAQUETE DEL SISTEMA ---");
+        System.out.println("\n--- 10. ELIMINAR PAQUETE DEL SISTEMA ---");
         String codBorrar = leerCodigoAlfanumerico(sc, "¿Cuál es el código del paquete que necesitas borrar? (ej. PQ105): ");
         
         if (centro.eliminarPaquetePendiente(codBorrar)) {
@@ -268,14 +336,69 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
         }
     }
 
-    // =========================================================================
-    // NUEVA OPCIÓN 17: SUBMENÚ INTERACTIVO PARA LOS 6 CASOS DE ELIMINACIÓN
-    // =========================================================================
+    private static void opcionRecursivaPesoMunicipio(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 11. CALCULAR PESO TOTAL POR ZONA (RECURSIVIDAD) ---");
+        String mun = centro.resolverNombreMunicipio(leerTextoSoloLetras(sc, "¿De qué municipio quieres sumar los pesos?: "));
+        double total = centro.calcularPesoTotalPorMunicipio(mun);
+        System.out.printf("\n-> Todo lo que va para %s suma un total de: %.2f kg%n", mun, total);
+    }
+
+    private static void opcionRecursivaContarPrioridad(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 12. FILTRO DE PRIORIDAD (RECURSIVIDAD) ---");
+        int prioMin = leerEnteroEnRango(sc, "¿De qué prioridad hacia arriba quieres contar? (1 a 5): ", 1, 5);
+        int conteo = centro.contarPaquetesConPrioridadMinima(prioMin);
+        System.out.println("\n-> Tenemos " + conteo + " paquete(s) con prioridad " + prioMin + " o superior.");
+    }
+
+    private static void opcionBusquedaBinaria(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 13. BÚSQUEDA BINARIA ---");
+        String cod = leerCodigoAlfanumerico(sc, "Escribe el código a localizar: ");
+        List<Paquete> ordenados = centro.obtenerPaquetesOrdenadosPorCodigo();
+        Paquete hallado = centro.buscarPaqueteBinariaPorCodigo(ordenados, cod);
+        
+        if (hallado != null) {
+            System.out.println("\n-> Lo encontré rapidísimo con búsqueda binaria: " + hallado);
+        } else {
+            System.out.println("\n-> Búsqueda finalizada. Ese código no existe.");
+        }
+    }
+
+    private static void opcionReportesOrdenados(CentroDistribucion centro, Scanner sc) {
+        System.out.println("\n--- 15. GENERAR REPORTES ORDENADOS ---");
+        System.out.println("1. Tal cual fueron llegando (Orden original)");
+        System.out.println("2. Por código alfabético (Comparable)");
+        System.out.println("3. Por los de mayor prioridad (Comparator)");
+        System.out.println("4. Por los más pesados (Comparator)");
+        System.out.println("5. Por los más rápidos en entregar (Comparator)");
+
+        int crit = leerEnteroEnRango(sc, "\n¿Cómo quieres ver la lista? (1-5): ", 1, 5);
+        int max = centro.getPaquetesOrdenLlegada().size();
+        if (max == 0) {
+            System.out.println("\n[INFO] No hay paquetes registrados en este momento.");
+            return;
+        }
+        int cantidad = leerEnteroEnRango(sc, "¿Cuántos quieres ver en pantalla? (1 a " + max + "): ", 1, max);
+
+        List<Paquete> reporte;
+        switch (crit) {
+            case 1: reporte = centro.getPaquetesOrdenLlegada(); break;
+            case 2: reporte = centro.obtenerPaquetesOrdenadosPorCodigo(); break;
+            case 3: reporte = centro.obtenerPaquetesOrdenadosPorPrioridad(); break;
+            case 4: reporte = centro.obtenerPaquetesOrdenadosPorPeso(); break;
+            default: reporte = centro.obtenerPaquetesOrdenadosPorTiempo(); break;
+        }
+
+        System.out.println("");
+        for (int i = 0; i < cantidad; i++) {
+            System.out.println("   " + (i + 1) + ". " + reporte.get(i));
+        }
+    }
+
     private static void opcionPruebaEliminacionLista(Scanner sc) {
         int subOpcion = -1;
         
         while (subOpcion != 0) {
-            System.out.println("\n--- 17. PRUEBA INTERACTIVA DE ELIMINACIÓN (LISTA PROPIA) ---");
+            System.out.println("\n--- 16. PRUEBA INTERACTIVA DE ELIMINACIÓN (LISTA PROPIA) ---");
             System.out.println("¿Qué caso específico de eliminación deseas demostrar?");
             System.out.println(" 1. Caso 1: Intentar eliminar en una lista vacía");
             System.out.println(" 2. Caso 2: Eliminar el único elemento de la lista");
@@ -292,7 +415,6 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
                 break;
             }
             
-            // Cada vez que se elige un caso, creamos una lista fresquita para ese escenario
             ColeccionSimple<String> listaPrueba = new ListaSimplementeEnlazada<>();
             
             switch (subOpcion) {
@@ -364,121 +486,6 @@ private static void ejecutarMenu(CentroDistribucion centro, Scanner sc) {
             primero = false;
         }
         System.out.println("]");
-    }
-
-    // =========================================================================
-
-    private static void opcionReportesOrdenados(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 7. GENERAR REPORTES ORDENADOS ---");
-        System.out.println("1. Tal cual fueron llegando (Orden original)");
-        System.out.println("2. Por código alfabético (Comparable)");
-        System.out.println("3. Por los de mayor prioridad (Comparator)");
-        System.out.println("4. Por los más pesados (Comparator)");
-        System.out.println("5. Por los más rápidos en entregar (Comparator)");
-
-        int crit = leerEnteroEnRango(sc, "\n¿Cómo quieres ver la lista? (1-5): ", 1, 5);
-        int max = centro.getPaquetesOrdenLlegada().size();
-        if (max == 0) {
-            System.out.println("\n[INFO] No hay paquetes registrados en este momento.");
-            return;
-        }
-        int cantidad = leerEnteroEnRango(sc, "¿Cuántos quieres ver en pantalla? (1 a " + max + "): ", 1, max);
-
-        List<Paquete> reporte;
-        switch (crit) {
-            case 1: reporte = centro.getPaquetesOrdenLlegada(); break;
-            case 2: reporte = centro.obtenerPaquetesOrdenadosPorCodigo(); break;
-            case 3: reporte = centro.obtenerPaquetesOrdenadosPorPrioridad(); break;
-            case 4: reporte = centro.obtenerPaquetesOrdenadosPorPeso(); break;
-            default: reporte = centro.obtenerPaquetesOrdenadosPorTiempo(); break;
-        }
-
-        System.out.println("");
-        for (int i = 0; i < cantidad; i++) {
-            System.out.println("   " + (i + 1) + ". " + reporte.get(i));
-        }
-    }
-
-    private static void opcionGestionarRepartidores(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 8. ADMINISTRACIÓN DE REPARTIDORES ---");
-        for (Repartidor r : centro.getRepartidoresPorId().values()) {
-            Paquete enRuta = centro.obtenerPaqueteEnRuta(r.getIdentificacion());
-            System.out.println("   * " + r + (enRuta != null ? "  -> (Repartiendo el " + enRuta.getCodigo() + ")" : ""));
-        }
-        System.out.println("\nOpciones: [1] Agregar uno nuevo | [2] Cambiar su estado | [0] Volver al menú");
-        int sub = leerEnteroEnRango(sc, "¿Qué deseas hacer? (0-2): ", 0, 2);
-
-        if (sub == 1) {
-            String id = leerCodigoAlfanumerico(sc, "ID único (ej. REP-800): ");
-            while (centro.consultarRepartidorPorId(id) != null) {
-                error("Ese ID ya lo tiene otro repartidor.");
-                id = leerCodigoAlfanumerico(sc, "ID único (ej. REP-800): ");
-            }
-            String nombre = leerTextoSoloLetras(sc, "Nombre completo: ");
-            String zona = centro.resolverNombreMunicipio(leerTextoSoloLetras(sc, "¿En qué municipio trabaja?: "));
-            boolean disp = leerSiNo(sc, "¿Está disponible para trabajar ya mismo? (s/n): ");
-
-            Repartidor nuevo = new Repartidor(id, nombre, zona, disp);
-            centro.registrarRepartidor(nuevo);
-            System.out.println("\n[ÉXITO] Repartidor guardado en la base de datos.");
-        } else if (sub == 2) {
-            String id = leerCodigoAlfanumerico(sc, "Escribe el ID del repartidor que vas a editar (ej. REP-101): ");
-            Repartidor rep = centro.consultarRepartidorPorId(id);
-            if (rep == null) {
-                throw new IllegalArgumentException("No encontré a nadie con ese ID.");
-            }
-            Paquete enRuta = centro.obtenerPaqueteEnRuta(rep.getIdentificacion());
-            if (enRuta != null) {
-                throw new IllegalArgumentException("No le puedes cambiar el estado ahorita porque está ocupado entregando el " + enRuta.getCodigo() + ". Ve a la opción 14.");
-            }
-            boolean disp = leerSiNo(sc, "¿Lo marcamos como DISPONIBLE? (s/n): ");
-            rep.setDisponible(disp);
-            System.out.println("\n[ÉXITO] Listo, estado actualizado.");
-        }
-    }
-
-    private static void opcionHistorialEntregas(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 9. HISTORIAL OFICIAL DE ENTREGAS ---");
-        ColeccionSimple<Paquete> hist = centro.getHistorialEntregas();
-        System.out.println("Total de paquetes ya entregados: " + hist.tamano());
-
-        if (hist.estaVacia()) {
-            System.out.println("\n   (Aún está vacío. Haz un despacho primero y luego registra la entrega).");
-            return;
-        }
-
-        System.out.println("");
-        int idx = 0;
-        for (Paquete p : hist) {
-            System.out.println("   [Entrega N°" + (++idx) + "] -> " + p);
-        }
-    }
-
-    private static void opcionRecursivaPesoMunicipio(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 10. CALCULAR PESO TOTAL POR ZONA (RECURSIVIDAD) ---");
-        String mun = centro.resolverNombreMunicipio(leerTextoSoloLetras(sc, "¿De qué municipio quieres sumar los pesos?: "));
-        double total = centro.calcularPesoTotalPorMunicipio(mun);
-        System.out.printf("\n-> Todo lo que va para %s suma un total de: %.2f kg%n", mun, total);
-    }
-
-    private static void opcionRecursivaContarPrioridad(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 11. FILTRO DE PRIORIDAD (RECURSIVIDAD) ---");
-        int prioMin = leerEnteroEnRango(sc, "¿De qué prioridad hacia arriba quieres contar? (1 a 5): ", 1, 5);
-        int conteo = centro.contarPaquetesConPrioridadMinima(prioMin);
-        System.out.println("\n-> Tenemos " + conteo + " paquete(s) con prioridad " + prioMin + " o superior.");
-    }
-
-    private static void opcionBusquedaBinaria(CentroDistribucion centro, Scanner sc) {
-        System.out.println("\n--- 12. BÚSQUEDA BINARIA ---");
-        String cod = leerCodigoAlfanumerico(sc, "Escribe el código a localizar: ");
-        List<Paquete> ordenados = centro.obtenerPaquetesOrdenadosPorCodigo();
-        Paquete hallado = centro.buscarPaqueteBinariaPorCodigo(ordenados, cod);
-        
-        if (hallado != null) {
-            System.out.println("\n-> Lo encontré rapidísimo con búsqueda binaria: " + hallado);
-        } else {
-            System.out.println("\n-> Búsqueda finalizada. Ese código no existe.");
-        }
     }
 
     // =========================================================================
