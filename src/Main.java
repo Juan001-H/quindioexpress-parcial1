@@ -105,8 +105,7 @@ public class Main {
             }
 
             if (opcion != 0 && opcion != 16) {
-                System.out.print("\n[Presione ENTER para continuar]");
-                leerLinea(sc);
+                esperarEnter(sc, "\n[Presione ENTER para continuar]");
             }
         }
     }
@@ -487,8 +486,7 @@ public class Main {
                     break;
             }
             
-            System.out.print("\n[Presione ENTER para probar otro caso]");
-            leerLinea(sc);
+            esperarEnter(sc, "\n[Presione ENTER para probar otro caso]");
         }
     }
 
@@ -506,6 +504,14 @@ public class Main {
     // =========================================================================
     // UTILIDADES PARA LEER TEXTO Y EVITAR QUE SE DAÑE CON DATOS MALOS
     // =========================================================================
+
+    // Pausa: solo continúa con un ENTER vacío; si escriben algo, avisa y vuelve a esperar
+    private static void esperarEnter(Scanner sc, String mensaje) {
+        System.out.print(mensaje);
+        while (!leerLinea(sc).trim().isEmpty()) {
+            System.out.print("   [!] Primero presiona solo ENTER (sin escribir nada) para continuar: ");
+        }
+    }
 
     private static String leerLinea(Scanner sc) {
         try {

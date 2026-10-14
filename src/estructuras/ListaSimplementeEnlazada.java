@@ -53,7 +53,7 @@ public class ListaSimplementeEnlazada<T> implements ColeccionSimple<T> {
 
     /**
      * Elimina la primera aparición del elemento y retorna true si lo eliminó, o false si no existe.
-     * Cubre los 6 casos exigidos en el documento.
+     * Cubre los 6 casos exigidos.
      * Complejidad: O(n) porque toca buscar el nodo.
      */
     @Override
